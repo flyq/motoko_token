@@ -27,7 +27,7 @@ dfx start
 ```
 
 terminal 2:
-```
+```shell
 dfx canister create motoko_token
 
 dfx build motoko_token
@@ -48,6 +48,19 @@ ALICE_ID=$(dfx --identity alice_auth canister call motoko_token callerPrincipal 
 echo $ALICE_ID
 
 dfx canister call motoko_token balanceOf "($ALICE_ID)"
+(10_000_000_000)
+
+# 发现获取余额的逻辑有问题，更新容器
+
+dfx build motoko_token
+
+dfx canister install motoko_token --argument '("Motoko Token", 4, "MTT", 1000000)' -m upgrade
+
+dfx canister call motoko_token balanceOf "($ALICE_ID)"
+(0)
+
+dfx canister call motoko_token transfer "($ALICE_ID, 1000000)"
+
 
 dfx canister call motoko_token transfer()
 

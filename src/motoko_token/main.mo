@@ -14,14 +14,19 @@ shared({ caller = initializer }) actor class Token(_name : Text, _decimals : Nat
     balances := AssocList.replace<Principal, Nat64>(balances, initializer, Principal.equal, ?total).0;
 
     public shared({ caller }) func transfer(to: Principal, value: Nat64) : async Bool {
-        var temp : Nat64 = switch (AssocList.find<Principal, Nat64>(balances, caller, Principal.equal)) {
+        var caller_balance : Nat64 = switch (AssocList.find<Principal, Nat64>(balances, caller, Principal.equal)) {
+            case (?Nat64) Nat64;
+            case (_) 0;
+        }; 
+        if (caller_balance < value) {
+            return false;
+        };
+        var to_balance : Nat64 = switch (AssocList.find<Principal, Nat64>(balances, caller, Principal.equal)) {
             case (?Nat64) Nat64;
             case (_) 0;
         };
-        if (temp < value) {
-            return false;
-        };
-        balances := AssocList.replace<Principal, Nat64>(balances, caller, Principal.equal, ?(temp - value)).0;
+        balances := AssocList.replace<Principal, Nat64>(balances, caller, Principal.equal, ?(caller_balance - value)).0;
+        balances := AssocList.replace<Principal, Nat64>(balances, to, Principal.equal, ?(to_balance + value)).0;
         return true;
     };
 
