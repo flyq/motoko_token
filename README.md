@@ -18,3 +18,37 @@ cd motoko_token/
 dfx help
 dfx config --help
 ```
+
+## steps
+
+terminal 1:
+```
+dfx start 
+```
+
+terminal 2:
+```
+dfx canister create motoko_token
+
+dfx build motoko_token
+
+dfx canister install motoko_token --argument '("Motoko Token", 4, "MTT", 1000000)'
+
+dfx canister call motoko_token callerPrincipal 
+
+
+DEFAULT_ID=$(dfx --identity default canister call motoko_token callerPrincipal | sed 's/[\\(\\)]//g')
+
+
+dfx canister call motoko_token balanceOf "($DEFAULT_ID)"
+(10_000_000_000)
+
+ALICE_ID=$(dfx --identity alice_auth canister call motoko_token callerPrincipal | sed 's/[\\(\\)]//g')
+
+echo $ALICE_ID
+
+dfx canister call motoko_token balanceOf "($ALICE_ID)"
+
+dfx canister call motoko_token transfer()
+
+```

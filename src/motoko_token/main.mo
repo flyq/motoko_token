@@ -26,7 +26,7 @@ shared({ caller = initializer }) actor class Token(_name : Text, _decimals : Nat
     };
 
     public shared({ caller }) func balanceOf(who: Principal) : async Nat64 {
-        var temp : Nat64 = switch (AssocList.find<Principal, Nat64>(balances, caller, Principal.equal)) {
+        var temp : Nat64 = switch (AssocList.find<Principal, Nat64>(balances, who, Principal.equal)) {
             case (?Nat64) Nat64;
             case (_) 0;
         };
