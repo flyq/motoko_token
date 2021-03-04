@@ -37,7 +37,7 @@ dfx canister create motoko_token
 
 dfx build motoko_token
 
-dfx canister install motoko_token --argument '("Motoko Test Token", 4, "MKT", 1000000)'
+dfx canister install motoko_token --argument '("Motoko Test", 4, "MKT", 1000000)'
 
 dfx canister call motoko_token callerPrincipal 
 
@@ -91,12 +91,14 @@ dfx canister call motoko_token transfer "($ALICE_ID, 10_000_000_000)"
 (false)
 
 # 
-dfx canister install motoko_token --argument '("Motoko Test Token", 4, "MKT", 1000000)' -m upgrade
+dfx canister install motoko_token --argument '("Motoko Test Token", 4, "MKT", 1000000000)' -m upgrade
 
 BOB_ID=$(dfx --identity bob_standard canister call motoko_token callerPrincipal | sed 's/[\\(\\)]//g')
 
 
 ```
+
+todo，确定 let 变量控制的数据能不能变。
 
 ## reference
 1. ERC20: https://eips.ethereum.org/EIPS/eip-20
