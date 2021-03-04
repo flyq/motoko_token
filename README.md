@@ -58,11 +58,11 @@ echo $ALICE_ID
 dfx canister call motoko_token balanceOf "($ALICE_ID)"
 (10_000_000_000)
 
-# 发现获取余额的逻辑有问题，更新容器
+# 发现获取余额的逻辑有问题，更新容器 upgrade
 
 dfx build motoko_token
 
-dfx canister install motoko_token --argument '("Motoko Token", 4, "MTT", 1000000)' -m upgrade
+dfx canister install motoko_token --argument '("Motoko Test Token", 4, "MKT", 1000000)' -m upgrade
 
 dfx canister call motoko_token balanceOf "($ALICE_ID)"
 (0)
@@ -71,11 +71,11 @@ dfx canister call motoko_token transfer "($ALICE_ID, 1000000)"
 
 dfx canister call motoko_token balanceOf "($ALICE_ID)"
 
-# 发现转账逻辑有问题，重新安装容器
+# 发现转账逻辑有问题，重新安装容器 reinstall
 
 dfx build motoko_token
 
-dfx canister install motoko_token --argument '("Motoko Token", 4, "MTT", 1000000)' -m reinstall
+dfx canister install motoko_token --argument '("Motoko Test Token", 4, "MKT", 1000000)' -m reinstall
 
 # 重新安装后余额为0
 dfx canister call motoko_token balanceOf "($ALICE_ID)"
@@ -91,10 +91,9 @@ dfx canister call motoko_token transfer "($ALICE_ID, 10_000_000_000)"
 (false)
 
 # 
-dfx canister install motoko_token --argument '("Motoko Token", 4, "MTT", 1000000)' -m upgrade
+dfx canister install motoko_token --argument '("Motoko Test Token", 4, "MKT", 1000000)' -m upgrade
 
 BOB_ID=$(dfx --identity bob_standard canister call motoko_token callerPrincipal | sed 's/[\\(\\)]//g')
-
 
 
 ```
