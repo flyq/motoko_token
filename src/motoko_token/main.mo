@@ -21,7 +21,7 @@ shared({ caller = initializer }) actor class Token(_name : Text, _decimals : Nat
         if (caller_balance < value) {
             return false;
         };
-        var to_balance : Nat64 = switch (AssocList.find<Principal, Nat64>(balances, caller, Principal.equal)) {
+        var to_balance : Nat64 = switch (AssocList.find<Principal, Nat64>(balances, to, Principal.equal)) {
             case (?Nat64) Nat64;
             case (_) 0;
         };

@@ -39,6 +39,7 @@ dfx canister call motoko_token callerPrincipal
 
 DEFAULT_ID=$(dfx --identity default canister call motoko_token callerPrincipal | sed 's/[\\(\\)]//g')
 
+echo $DEFAULT_ID
 
 dfx canister call motoko_token balanceOf "($DEFAULT_ID)"
 (10_000_000_000)
@@ -61,7 +62,7 @@ dfx canister call motoko_token balanceOf "($ALICE_ID)"
 
 dfx canister call motoko_token transfer "($ALICE_ID, 1000000)"
 
+dfx canister call motoko_token balanceOf "($ALICE_ID)"
 
-dfx canister call motoko_token transfer()
 
 ```
