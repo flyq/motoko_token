@@ -1,4 +1,4 @@
-# erc20
+# motoko_token
 
 ## abstract
 
