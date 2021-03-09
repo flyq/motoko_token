@@ -1,5 +1,4 @@
 import HashMap "mo:base/HashMap";
-import Nat "mo:base/Nat";
 import Principal "mo:base/Principal";
 
 shared({ caller }) actor class Token(_name : Text, _decimals : Nat, _symbol : Text, _total : Nat, _owner: Principal) {
