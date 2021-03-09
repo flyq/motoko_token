@@ -37,24 +37,18 @@ dfx canister create motoko_token
 
 dfx build motoko_token
 
-DEFAULT_ID=$(dfx --identity default canister call motoko_token callerPrincipal | sed 's/[\\(\\)]//g')
+dfx --identity default identity get-principal
+
+DEFAULT_ID="principal \"$(dfx --identity default identity get-principal | sed 's/[\\(\\)]//g')\""
 
 echo $DEFAULT_ID
 
-dfx canister install motoko_token --argument "("Motoko Test", 4, "MKT", 1000000, $DEFAULT_ID)"
-
-dfx canister call motoko_token callerPrincipal 
+dfx canister install motoko_token --argument '("Motoko Test", 4, "MKT", 1000000, principal "l73xb-uaoom-uk6vy-yjmwy-ffdjj-tfbbn-wlsve-xxy7i-5d27t-6yh3t-fqe")' -m reinstall
 
 dfx canister call motoko_token balanceOf "($DEFAULT_ID)"
 (10_000_000_000)
 
-Wallet_ID=$(dfx canister call token owner | sed 's/[\\(\\)]//g')
-
-echo $Wallet_ID
-
-dfx canister call motoko_token balanceOf "($Wallet_ID)"
-
-dfx identity new alice_auth
+# dfx identity new alice_auth
 
 ALICE_ID=$(dfx --identity alice_auth canister call motoko_token callerPrincipal | sed 's/[\\(\\)]//g')
 
@@ -63,30 +57,9 @@ echo $ALICE_ID
 dfx canister call motoko_token balanceOf "($ALICE_ID)"
 (10_000_000_000)
 
-# 发现获取余额的逻辑有问题，更新容器 upgrade
-
-dfx build motoko_token
-
-dfx canister install motoko_token --argument '("Motoko Test Token", 4, "MKT", 1000000)' -m upgrade
-
-dfx canister call motoko_token balanceOf "($ALICE_ID)"
-(0)
-
 dfx canister call motoko_token transfer "($ALICE_ID, 1000000)"
 
 dfx canister call motoko_token balanceOf "($ALICE_ID)"
-
-# 发现转账逻辑有问题，重新安装容器 reinstall
-
-dfx build motoko_token
-
-dfx canister install motoko_token --argument '("Motoko Test Token", 4, "MKT", 1000000)' -m reinstall
-
-# 重新安装后余额为0
-dfx canister call motoko_token balanceOf "($ALICE_ID)"
-(0)
-
-dfx canister call motoko_token transfer "($ALICE_ID, 10000)"
 
 # 溢出测试
 dfx canister call motoko_token transfer "($ALICE_ID, 100_000_000_000_000_000_000)"
@@ -95,15 +68,23 @@ Invalid data: Unable to serialize Candid values: Candid parser error: number too
 dfx canister call motoko_token transfer "($ALICE_ID, 10_000_000_000)"
 (false)
 
-# 
-dfx canister install motoko_token --argument '("Motoko Test Token", 4, "MKT", 1000000000)' -m upgrade
 
 BOB_ID=$(dfx --identity bob_standard canister call motoko_token callerPrincipal | sed 's/[\\(\\)]//g')
 
+echo $BOB_ID
+
+dfx canister call motoko_token approve "($ALICE_ID, 50000)"
+
+dfx --identity alice_auth canister call motoko_token transferFrom "($DEFAULT_ID, $BOB_ID, 50000)"
+
+dfx canister call motoko_token balanceOf "($ALICE_ID)"
+
+dfx canister call motoko_token balanceOf "($BOB_ID)"
+
+dfx canister call motoko_token balanceOf "($DEFAULT_ID)"
+
 
 ```
-
-todo，确定 let 变量控制的数据能不能变。
 
 ## reference
 1. ERC20: https://eips.ethereum.org/EIPS/eip-20
