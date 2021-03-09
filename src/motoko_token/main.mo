@@ -2,7 +2,7 @@ import HashMap "mo:base/HashMap";
 import Nat "mo:base/Nat";
 import Principal "mo:base/Principal";
 
-shared({ caller = initializer }) actor class Token(_name : Text, _decimals : Nat, _symbol : Text, _total : Nat) {
+shared({ caller }) actor class Token(_name : Text, _decimals : Nat, _symbol : Text, _total : Nat, _owner: Principal) {
     private stable let name_ : Text = _name;
     private stable let decimals_ : Nat = _decimals;
     private stable let symbol_ : Text = _symbol;
@@ -10,7 +10,7 @@ shared({ caller = initializer }) actor class Token(_name : Text, _decimals : Nat
     private stable let totalSupply_ : Nat = _total * 10**_decimals;
 
     private var balances =  HashMap.HashMap<Principal, Nat>(1, Principal.equal, Principal.hash);
-    balances.put(initializer, _total * 10**_decimals);
+    balances.put(_owner, _total * 10**_decimals);
 
     private var allowed = HashMap.HashMap<Principal, HashMap.HashMap<Principal, Nat>>(1, Principal.equal, Principal.hash);
 

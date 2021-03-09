@@ -37,17 +37,22 @@ dfx canister create motoko_token
 
 dfx build motoko_token
 
-dfx canister install motoko_token --argument '("Motoko Test", 4, "MKT", 1000000)'
-
-dfx canister call motoko_token callerPrincipal 
-
-
 DEFAULT_ID=$(dfx --identity default canister call motoko_token callerPrincipal | sed 's/[\\(\\)]//g')
 
 echo $DEFAULT_ID
 
+dfx canister install motoko_token --argument "("Motoko Test", 4, "MKT", 1000000, $DEFAULT_ID)"
+
+dfx canister call motoko_token callerPrincipal 
+
 dfx canister call motoko_token balanceOf "($DEFAULT_ID)"
 (10_000_000_000)
+
+Wallet_ID=$(dfx canister call token owner | sed 's/[\\(\\)]//g')
+
+echo $Wallet_ID
+
+dfx canister call motoko_token balanceOf "($Wallet_ID)"
 
 dfx identity new alice_auth
 
