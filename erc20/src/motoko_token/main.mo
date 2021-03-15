@@ -4,24 +4,24 @@ import Principal "mo:base/Principal";
 actor Token {
     private stable var isInit_ : Bool = false;
 
-    private stable let name_ : Text;
-    private stable let decimals_ : Nat;
-    private stable let symbol_ : Text;
-    private stable let totalSupply_ : Nat;
+    private stable var name_ : Text = "";
+    private stable var decimals_ : Nat = 0;
+    private stable var symbol_ : Text = "";
+    private stable var totalSupply_ : Nat = 0;
 
     private var balances =  HashMap.HashMap<Principal, Nat>(1, Principal.equal, Principal.hash);
     private var allowed = HashMap.HashMap<Principal, HashMap.HashMap<Principal, Nat>>(1, Principal.equal, Principal.hash);
 
-    public shared(msg) func Init(_name: Text, _symbol: Text, _decimals: Nat, _totalSupply: Nat) : async Bool {
-        assert(!isInit_);
+    public shared(msg) func init(_name: Text, _symbol: Text, _decimals: Nat, _totalSupply: Nat) : async Bool {
+        assert(isInit_ == false);
         name_ := _name;
         symbol_ := _symbol;
         decimals_ := _decimals;
         totalSupply_ := _totalSupply * 10**_decimals;
         balances.put(msg.caller, totalSupply_);
-        isInit_ = true;
+        isInit_ := true;
         return true;
-    }
+    };
 
     public shared(msg) func transfer(to: Principal, value: Nat) : async Bool {
         assert(isInit_);
@@ -54,6 +54,7 @@ actor Token {
     };
 
     public shared(msg) func transferFrom(from: Principal, to: Principal, value: Nat) : async Bool {
+        assert(isInit_);
         switch (balances.get(from), allowed.get(from)) {
             case (?from_balance, ?allow_to) {
                 switch (allow_to.get(msg.caller)) {
@@ -90,6 +91,7 @@ actor Token {
     };
 
     public shared(msg) func approve(spender: Principal, value: Nat) : async Bool {
+        assert(isInit_);
         switch(allowed.get(msg.caller)) {
             case (?allow_to) {
                 allow_to.put(spender, value);
