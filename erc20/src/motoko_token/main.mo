@@ -25,23 +25,21 @@ actor Token {
 
     public shared(msg) func transfer(to: Principal, value: Nat) : async Bool {
         assert(isInit_);
-        switch (balances.get(msg.caller), balances.get(to)) {
-            case (?caller_balance, ?to_balance) {
+        switch (balances.get(msg.caller)) {
+            case (?caller_balance) {
                 if (caller_balance >= value ) {
                     var caller_balance_new = caller_balance - value;
-                    var to_balance_new = to_balance + value;
+                    var to_balance_new = switch (balances.get(to)) {
+                        case (?to_balance) {
+                            to_balance + value;
+                        }
+                        case (_) {
+                            value;
+                        };
+                    };
+                    assert(to_balance_new >= value);
                     balances.put(msg.caller, caller_balance_new);   // 优化，如果余额为零，直接 delete
                     balances.put(to, to_balance_new);
-                    return true;
-                } else {
-                    return false;
-                };
-            };
-            case (?caller_balance, null) {
-                if (caller_balance >= value ) {
-                    var caller_balance_new = caller_balance - value;
-                    balances.put(msg.caller, caller_balance_new);
-                    balances.put(to, value);
                     return true;
                 } else {
                     return false;
@@ -70,6 +68,7 @@ actor Token {
                                     value;
                                 };
                             };
+                            assert(to_balance_new >= value);
                             allow_to.put(msg.caller, allow_num_new);
                             allowed.put(from, allow_to);
                             balances.put(from, from_balance_new);
