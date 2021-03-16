@@ -32,7 +32,7 @@ actor Token {
                     var to_balance_new = switch (balances.get(to)) {
                         case (?to_balance) {
                             to_balance + value;
-                        }
+                        };
                         case (_) {
                             value;
                         };

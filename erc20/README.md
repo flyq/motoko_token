@@ -2,7 +2,7 @@
 
 ## abstract
 
-这是一个用 motoko 实现的的 token 代码。token 名为 Motoko Test Token，符号为 MTT，小数位为 0，总量为 1000
+这是一个用 motoko 实现的的 token 代码。token 名为 motoko_token，符号为 MT，小数位为 0，总量为 1000
 
 为了适用容器间调用，改版
 
@@ -32,6 +32,8 @@ ALICE_ID=$(dfx --identity alice_auth canister call motoko_token callerPrincipal 
 
 echo $ALICE_ID
 
+dfx canister call motoko_token init '("motoko_token", "MT", 0, 1000)'
+
 dfx canister call motoko_token balanceOf "($ALICE_ID)"
 
 dfx canister call motoko_token transfer "($ALICE_ID, 1000000)"
@@ -40,8 +42,6 @@ dfx canister call motoko_token transfer "($ALICE_ID, 1000000)"
 dfx canister call motoko_token totalSupply 
 
 dfx canister call motoko_token init  '("Motoko Test Token", "MTT", 0, 1000)'
-
-
 
 dfx canister call motoko_token balanceOf "($DEFAULT_ID)"
 
