@@ -68,6 +68,8 @@ dfx canister call motoko_token balanceOf "($ALICE_ID)"
 dfx canister call motoko_token balanceOf "($BOB_ID)"
 
 dfx canister call motoko_token balanceOf "($DEFAULT_ID)"
+
+➜  dswap git:(flyq) ✗ eval sudo dfx canister install token1 --argument="'(\"t1\",\"t1\",0,10000,$a)'"
 ```
 
 ## reference
