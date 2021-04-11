@@ -3,19 +3,6 @@
     "motoko_token": {
       "main": "src/motoko_token/main.mo",
       "type": "motoko"
-    },
-    "motoko_token_assets": {
-      "dependencies": [
-        "motoko_token"
-      ],
-      "frontend": {
-        "entrypoint": "src/motoko_token_assets/public/index.js"
-      },
-      "source": [
-        "src/motoko_token_assets/assets",
-        "dist/motoko_token_assets/"
-      ],
-      "type": "assets"
     }
   },
   "defaults": {

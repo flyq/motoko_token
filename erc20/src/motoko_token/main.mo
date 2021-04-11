@@ -1,35 +1,25 @@
 import HashMap "mo:base/HashMap";
 import Principal "mo:base/Principal";
 
-actor Token {
-    private stable var isInit_ : Bool = false;
-
-    private stable var name_ : Text = "";
-    private stable var decimals_ : Nat = 0;
-    private stable var symbol_ : Text = "";
-    private stable var totalSupply_ : Nat = 0;
+actor class Token(_name: Text, _symbol: Text, _decimals: Nat, _totalSupply: Nat, _owner: Principal) {
+    private stable var owner_ : Principal = _owner;
+    private stable let name_ : Text = _name;
+    private stable let decimals_ : Nat = _decimals;
+    private stable let symbol_ : Text = _symbol;
+    private stable var totalSupply_ : Nat = _totalSupply;
 
     private var balances =  HashMap.HashMap<Principal, Nat>(1, Principal.equal, Principal.hash);
-    private var allowed = HashMap.HashMap<Principal, HashMap.HashMap<Principal, Nat>>(1, Principal.equal, Principal.hash);
+    private var allowances = HashMap.HashMap<Principal, HashMap.HashMap<Principal, Nat>>(1, Principal.equal, Principal.hash);
 
-    public shared(msg) func init(_name: Text, _symbol: Text, _decimals: Nat, _totalSupply: Nat) : async Bool {
-        assert(isInit_ == false);
-        name_ := _name;
-        symbol_ := _symbol;
-        decimals_ := _decimals;
-        totalSupply_ := _totalSupply * 10**_decimals;
-        balances.put(msg.caller, totalSupply_);
-        isInit_ := true;
-        return true;
-    };
+    balances.put(owner_, totalSupply_);
 
+    /// Transfers value amount of tokens to Principal to.
     public shared(msg) func transfer(to: Principal, value: Nat) : async Bool {
-        assert(isInit_);
         switch (balances.get(msg.caller)) {
-            case (?caller_balance) {
-                if (caller_balance >= value ) {
-                    var caller_balance_new = caller_balance - value;
-                    var to_balance_new = switch (balances.get(to)) {
+            case (?from_balance) {
+                if (from_balance >= value) {
+                    let from_balance_new = from_balance - value;
+                    let to_balance_new = switch (balances.get(to)) {
                         case (?to_balance) {
                             to_balance + value;
                         };
@@ -37,8 +27,9 @@ actor Token {
                             value;
                         };
                     };
+                    assert(from_balance_new <= from_balance);
                     assert(to_balance_new >= value);
-                    balances.put(msg.caller, caller_balance_new);   // 优化，如果余额为零，直接 delete
+                    balances.put(msg.caller, from_balance_new);
                     balances.put(to, to_balance_new);
                     return true;
                 } else {
@@ -51,16 +42,16 @@ actor Token {
         }
     };
 
+    /// Transfers value amount of tokens from Principal from to Principal to.
     public shared(msg) func transferFrom(from: Principal, to: Principal, value: Nat) : async Bool {
-        assert(isInit_);
-        switch (balances.get(from), allowed.get(from)) {
-            case (?from_balance, ?allow_to) {
-                switch (allow_to.get(msg.caller)) {
-                    case (?allow_num) {
-                        if (from_balance >= value and allow_num >= value) {
-                            var from_balance_new = from_balance - value;
-                            var allow_num_new = allow_num - value;
-                            var to_balance_new = switch (balances.get(to)) {
+        switch (balances.get(from), allowances.get(from)) {
+            case (?from_balance, ?allowance_from) {
+                switch (allowance_from.get(msg.caller)) {
+                    case (?allowance) {
+                        if (from_balance >= value and allowance >= value) {
+                            let from_balance_new = from_balance - value;
+                            let allowance_new = allowance - value;
+                            let to_balance_new = switch (balances.get(to)) {
                                 case (?to_balance) {
                                    to_balance + value;
                                 };
@@ -68,9 +59,10 @@ actor Token {
                                     value;
                                 };
                             };
+                            assert(from_balance_new <= from_balance);
                             assert(to_balance_new >= value);
-                            allow_to.put(msg.caller, allow_num_new);
-                            allowed.put(from, allow_to);
+                            allowance_from.put(msg.caller, allowance_new);
+                            allowances.put(from, allowance_from);
                             balances.put(from, from_balance_new);
                             balances.put(to, to_balance_new);
                             return true;                            
@@ -89,19 +81,55 @@ actor Token {
         }
     };
 
+    /// Allows spender to withdraw from your account multiple times, up to the value amount. 
+    /// If this function is called again it overwrites the current allowance with value.
     public shared(msg) func approve(spender: Principal, value: Nat) : async Bool {
-        assert(isInit_);
-        switch(allowed.get(msg.caller)) {
-            case (?allow_to) {
-                allow_to.put(spender, value);
-                allowed.put(msg.caller, allow_to);
+        switch(allowances.get(msg.caller)) {
+            case (?allowances_caller) {
+                allowances_caller.put(spender, value);
+                allowances.put(msg.caller, allowances_caller);
                 return true;
             };
             case (_) {
                 var temp = HashMap.HashMap<Principal, Nat>(1, Principal.equal, Principal.hash);
                 temp.put(spender, value);
-                allowed.put(msg.caller, temp);
+                allowances.put(msg.caller, temp);
                 return true;
+            };
+        }
+    };
+
+    /// Creates value tokens and assigns them to Principal to, increasing the total supply.
+    public shared(msg) func mint(to: Principal, value: Nat): async Bool {
+        assert(msg.caller == owner_);
+        switch (balances.get(to)) {
+            case (?to_balance) {
+                balances.put(to, to_balance + value);
+                totalSupply_ += value;
+                return true;
+            };
+            case (_) {
+                balances.put(to, value);
+                totalSupply_ += value;
+                return true;
+            };
+        }
+    };
+
+    public shared(msg) func burn(from: Principal, value: Nat): async Bool {
+        assert(msg.caller == owner_ or msg.caller == from);
+        switch (balances.get(from)) {
+            case (?from_balance) {
+                if(from_balance >= value) {
+                    balances.put(from, from_balance - value);
+                    totalSupply_ -= value;
+                    return true;
+                } else {
+                    return false;
+                }
+            };
+            case (_) {
+                return false;
             };
         }
     };
@@ -118,11 +146,11 @@ actor Token {
     };
 
     public query func allowance(owner: Principal, spender: Principal) : async Nat {
-        switch(allowed.get(owner)) {
-            case (?allow_to) {
-                switch(allow_to.get(spender)) {
-                    case (?allow_num) {
-                        return allow_num;
+        switch(allowances.get(owner)) {
+            case (?allowance_owner) {
+                switch(allowance_owner.get(spender)) {
+                    case (?allowance) {
+                        return allowance;
                     };
                     case (_) {
                         return 0;
@@ -151,8 +179,7 @@ actor Token {
         return symbol_;
     };
 
-    // Return the principal of the message caller/user identity
-    public shared(msg) func callerPrincipal() : async Principal {
-        return msg.caller;
+    public query func owner() : async Principal {
+        return owner_;
     };
 };
