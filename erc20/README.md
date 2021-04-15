@@ -2,7 +2,7 @@
 
 ## abstract
 
-This is a simple token. decimals is 4, totalSupply is 1000_0000.
+This is a simple token. decimals is 3, totalSupply is 10_000_000, as 10_000 Token.
 
 ## steps
 
