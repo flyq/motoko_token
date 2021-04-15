@@ -18,8 +18,11 @@ actor class Token(_name: Text, _symbol: Text, _decimals: Nat, _totalSupply: Nat,
         switch (balances.get(msg.caller)) {
             case (?from_balance) {
                 if (from_balance >= value) {
-                    let from_balance_new = from_balance - value;
-                    let to_balance_new = switch (balances.get(to)) {
+                    var from_balance_new = from_balance - value;
+                    assert(from_balance_new <= from_balance);
+                    balances.put(msg.caller, from_balance_new);
+
+                    var to_balance_new = switch (balances.get(to)) {
                         case (?to_balance) {
                             to_balance + value;
                         };
@@ -27,9 +30,7 @@ actor class Token(_name: Text, _symbol: Text, _decimals: Nat, _totalSupply: Nat,
                             value;
                         };
                     };
-                    assert(from_balance_new <= from_balance);
                     assert(to_balance_new >= value);
-                    balances.put(msg.caller, from_balance_new);
                     balances.put(to, to_balance_new);
                     return true;
                 } else {
@@ -49,9 +50,11 @@ actor class Token(_name: Text, _symbol: Text, _decimals: Nat, _totalSupply: Nat,
                 switch (allowance_from.get(msg.caller)) {
                     case (?allowance) {
                         if (from_balance >= value and allowance >= value) {
-                            let from_balance_new = from_balance - value;
-                            let allowance_new = allowance - value;
-                            let to_balance_new = switch (balances.get(to)) {
+                            var from_balance_new = from_balance - value;
+                            assert(from_balance_new <= from_balance);
+                            balances.put(from, from_balance_new);
+
+                            var to_balance_new = switch (balances.get(to)) {
                                 case (?to_balance) {
                                    to_balance + value;
                                 };
@@ -59,12 +62,13 @@ actor class Token(_name: Text, _symbol: Text, _decimals: Nat, _totalSupply: Nat,
                                     value;
                                 };
                             };
-                            assert(from_balance_new <= from_balance);
                             assert(to_balance_new >= value);
+                            balances.put(to, to_balance_new);
+
+                            var allowance_new = allowance - value;
+                            assert(allowance_new <= allowance);
                             allowance_from.put(msg.caller, allowance_new);
                             allowances.put(from, allowance_from);
-                            balances.put(from, from_balance_new);
-                            balances.put(to, to_balance_new);
                             return true;                            
                         } else {
                             return false;
